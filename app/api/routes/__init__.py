@@ -1,0 +1,13 @@
+# app/api/routes/__init__.py
+from fastapi import APIRouter
+from .canciones import router as canciones_router
+from .canciones_upload import router as canciones_upload_router
+from .generos import router as generos_router
+# from .valoraciones import router as valoraciones_router
+
+api_router = APIRouter(prefix="/api")
+api_router.include_router(canciones_router)
+api_router.include_router(canciones_upload_router)
+# api_router.include_router(valoraciones_router)
+api_router.include_router(generos_router)
+
