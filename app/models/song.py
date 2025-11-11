@@ -35,6 +35,14 @@ class Cancion(Base):
     album = relationship("Album", back_populates="canciones")
     playlists = relationship("Playlist", secondary=playlist_cancion, back_populates="canciones")
 
+
+    purchases = relationship(
+        "CompraCancion",
+        back_populates="song",
+        cascade="all, delete-orphan",
+    )
+
+
     @property
     def generos(self) -> list[str]:
         # nombres desde la relación N–N
