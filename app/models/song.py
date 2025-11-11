@@ -5,6 +5,8 @@ from app.db import Base
 from .associations import playlist_cancion, cancion_genero
 from .artist_links import CancionArtistaLink
 
+from typing import List
+
 
 class Cancion(Base):
     __tablename__ = "cancion"
@@ -52,6 +54,7 @@ class Cancion(Base):
     @property
     def artistas_emails(self) -> list[str]:
         return [r.artista_email for r in self.artistas_refs]
+
 
     def set_artistas_emails(self, emails: list[str]):
         self.artistas_refs = [CancionArtistaLink(artista_email=e) for e in emails]

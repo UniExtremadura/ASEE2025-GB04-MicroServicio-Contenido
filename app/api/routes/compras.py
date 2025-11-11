@@ -50,3 +50,13 @@ def listar_ids_comprados(
 ):
     return purchase_dao.list_user_song_ids(user_ref=user_ref)
 
+
+@router.get("/compras/check", response_model=CompraCheckOut)
+def comprobar_compra(
+    user_ref: str = Query(...),
+    song_id: int = Query(...),
+    purchase_dao: PurchaseDAO = Depends(get_purchase_dao),
+):
+    ok = purchase_dao.has_purchase(user_ref=user_ref, song_id=song_id)
+    return {"purchased": ok}
+
