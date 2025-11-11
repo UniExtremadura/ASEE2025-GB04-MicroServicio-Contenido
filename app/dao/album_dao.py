@@ -70,9 +70,9 @@ class AlbumDAO:
         album.genres = found
 
 
-                # # si no pasa 'genre' simple, usa el primero como principal
-                # if not genre and found:
-                #     song.genre = found[0].name
+            # # si no pasa 'genre' simple, usa el primero como principal
+              # if not genre and found:
+            #     song.genre = found[0].name
         # relaciones: artistas (usando el helper)
         if artista_emails:
             # método helper en el modelo Cancion
