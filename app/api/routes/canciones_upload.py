@@ -18,6 +18,7 @@ from app.factories.song import get_song_dao
 from app.schemas.song import CancionOut
 from app.services import storage
 from app import config
+from app.services.auth_proxy import get_current_identity
 
 from app.models.genre import Genre
 
@@ -99,7 +100,20 @@ async def upload_cancion(
 
     db: Session = Depends(get_db),
     song_dao: SongDAO = Depends(get_song_dao),
+    # auth para obtener identidad del que sube
+    identity: dict = Depends(get_current_identity),
 ):
+
+
+    # Si es artista y no se indicó artistas_emails, usa su email automáticamente
+    if identity.get("user_type") == "artist":
+        artistas_emails = [identity["user_data"]["email"]]
+
+    # Si es artista y se intentan otros emails, no permitir
+    if identity.get("user_type") == "artist" and artistas_emails:
+        if identity["user_data"]["email"] not in artistas_emails:
+            raise HTTPException(status_code=403, detail="No puedes subir en nombre de otro artista")
+
 
     # —— validar nombres de géneros ——
     genre_names = []
