@@ -21,3 +21,17 @@ class CancionArtistaLink(Base):
         UniqueConstraint("cancion_id", "artista_email", name="uq_cancion_artista"),
     )
 
+class AlbumArtistaLink(Base):
+    __tablename__ = "album_artista"
+
+    album_id: Mapped[int] = mapped_column(
+        ForeignKey("album.id", ondelete="CASCADE"), primary_key=True
+    )
+    artista_email: Mapped[str] = mapped_column(String(120), primary_key=True, index=True)
+
+    # backref a Album
+    album = relationship("Album", back_populates="artistas_refs")
+
+    __table_args__ = (
+        UniqueConstraint("album_id", "artista_email", name="uq_album_artista"),
+    )
