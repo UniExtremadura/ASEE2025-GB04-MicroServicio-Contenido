@@ -1,6 +1,7 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from fastapi import HTTPException
 from app.models.song import Cancion as Song
 from app.models.genre import Genre
 
@@ -67,3 +68,32 @@ class SongDAO:
         self.db.refresh(song)
         return song
 
+    def get(self, song_id: int) -> Optional[Song]:
+        """Obtiene una canción por su ID."""
+        return self.db.query(Song).filter(Song.id == song_id).first()
+
+    def update(self, song_id: int, *, update_data: Dict[str, Any]) -> Optional[Song]:
+        """
+        Actualiza una canción con un diccionario de datos.
+        Este método es genérico y solo actualiza los campos proporcionados.
+        """
+        song = self.get(song_id)
+        if not song:
+            return None
+
+        for field, value in update_data.items():
+            if hasattr(song, field):
+                setattr(song, field, value)
+
+        self.db.commit()
+        self.db.refresh(song)
+        return song
+
+    def delete(self, song_id: int) -> bool:
+        """Elimina una canción por su ID."""
+        song = self.get(song_id)
+        if not song:
+            return False
+        self.db.delete(song)
+        self.db.commit()
+        return True

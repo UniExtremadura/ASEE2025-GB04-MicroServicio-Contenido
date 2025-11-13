@@ -33,3 +33,21 @@ class CancionOut(BaseModel):
             return v
         return f"/files/{v.lstrip('/')}"
 
+
+class CancionUpdate(BaseModel):
+    """Schema para actualizar una canción con campos opcionales."""
+    nomCancion: Optional[str] = None
+    imgPortada: Optional[str] = None
+    genre: Optional[str] = None
+    generos: Optional[List[str]] = None
+    date: Optional[Date] = None
+    precio: Optional[float] = None
+    idAlbum: Optional[int] = None
+    artistas_emails: Optional[List[str]] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CancionPriceUpdate(BaseModel):
+    """Schema específico para actualizar solo el precio de una canción."""
+    precio: float
