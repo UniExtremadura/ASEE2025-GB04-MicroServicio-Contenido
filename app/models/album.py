@@ -6,6 +6,7 @@ from app.db import Base
 from .associations import album_genero
 from .artist_links import CancionArtistaLink, AlbumArtistaLink
 
+
 class Album(Base):
     __tablename__ = "album"
 
@@ -16,16 +17,19 @@ class Album(Base):
     date: Mapped[Date | None] = mapped_column(Date, nullable=True)
     precio: Mapped[float] = mapped_column(Float, nullable=False, default=0)
 
+    # relaciones con géneros
     genres = relationship("Genre", secondary=album_genero, back_populates="albums")
-                          
-    # relaciones
+
+    # relaciones con canciones
     canciones = relationship("Cancion", back_populates="album", cascade="all, delete-orphan")
 
+    # relación N–N con artistas usando tabla intermedia
     artistas_refs = relationship(
         "AlbumArtistaLink",
         back_populates="album",
         cascade="all, delete-orphan",
     )
+
     @property
     def generos(self) -> list[str]:
         # nombres desde la relación N–N
@@ -43,7 +47,8 @@ class Album(Base):
     def genre(self) -> list[str]:
         # Para compatibilidad con el frontend que espera "genre"
         return self.generos
-    
+
     @property
     def canciones_ids(self) -> list[int]:
         return [c.id for c in self.canciones]
+
