@@ -10,6 +10,7 @@ class Settings(BaseModel):
     database_url: str = os.getenv("DATABASE_URL")
     upload_dir: str = os.getenv("UPLOAD_DIR", "app/static/uploads")
     file_base_url: str = os.getenv("FILE_BASE_URL", "http://localhost:8080/files")
+    users_base_url: str = os.getenv("USERS_BASE_URL", "http://127.0.0.1:8001")  # <— NUEVO
 
 
 

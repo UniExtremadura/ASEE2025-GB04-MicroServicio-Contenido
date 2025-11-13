@@ -1,8 +1,9 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from app.models.song import Cancion as Song
 from app.models.genre import Genre
+
 
 class SongDAO:
     def __init__(self, db: Session):
@@ -10,7 +11,7 @@ class SongDAO:
 
     # Renombrado: antes se llamaba 'list'
     def list_songs(self, *, genero: Optional[str] = None, popularidad: Optional[str] = None):
-        q = self.db.query(Song)
+        q = self.db.query(Song).options(joinedload(Song.genres))
         if genero:
             q = q.filter(Song.genre.ilike(f"%{genero}%"))
         if popularidad == "top":
@@ -54,9 +55,6 @@ class SongDAO:
                 )
                 song.set_genres(found)
 
-                # # si no pasa 'genre' simple, usa el primero como principal
-                # if not genre and found:
-                #     song.genre = found[0].name
 
         if artistas_emails:
             # método helper en el modelo Cancion
@@ -67,3 +65,12 @@ class SongDAO:
         self.db.refresh(song)
         return song
 
+
+    # rf 4.3
+    def get(self, song_id: int) -> Optional[Song]:
+        return (
+            self.db.query(Song)
+            .options(joinedload(Song.genres))  
+            .filter(Song.id == song_id)
+            .one_or_none()
+        )
