@@ -14,8 +14,9 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.dao.song_dao import SongDAO
-from app.factories.song import get_song_dao
-from app.schemas.song import CancionOut
+from app.factories import get_song_dao
+from app.schemas.song import CancionOut, CancionUpdate, CancionPriceUpdate
+from app.services.song_service import SongService
 from app.services import storage
 from app import config
 from app.services.auth_proxy import get_current_identity
@@ -171,3 +172,44 @@ async def upload_cancion(
 
     return song
 
+
+@router.put(
+    "/canciones/{song_id}",
+    response_model=CancionOut,
+    summary="Actualizar una canción por ID",
+)
+async def update_cancion(
+    song_id: int,
+    cancion_update: CancionUpdate,
+    db: Session = Depends(get_db),
+):
+    """
+    Actualiza los campos de una canción.
+    Los campos no proporcionados no se modificarán.
+    """
+    song_service = SongService(db)
+    update_data = cancion_update.model_dump(exclude_unset=True)
+    updated_song = song_service.update_song(song_id, update_data=update_data)
+
+    if updated_song is None:
+        raise HTTPException(status_code=404, detail=f"Canción con id={song_id} no encontrada")
+
+    return updated_song
+
+
+@router.patch(
+    "/canciones/{song_id}/precio",
+    response_model=CancionOut,
+    summary="Actualizar el precio de una canción",
+)
+async def update_cancion_price(
+    song_id: int,
+    price_update: CancionPriceUpdate,
+    db: Session = Depends(get_db),
+):
+    """Actualiza únicamente el precio de una canción específica."""
+    song_service = SongService(db)
+    updated_song = song_service.update_song_price(song_id, precio=price_update.precio)
+    if updated_song is None:
+        raise HTTPException(status_code=404, detail=f"Canción con id={song_id} no encontrada")
+    return updated_song
