@@ -81,3 +81,7 @@ class AlbumUpdate(BaseModel):
         if not v or v.startswith("http") or v.startswith("/files/"):
             return v
         return f"/files/{v.lstrip('/')}"
+
+class AlbumPriceUpdate(BaseModel):
+    """Schema específico para actualizar solo el precio de un álbum."""
+    precio: float

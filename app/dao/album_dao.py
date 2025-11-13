@@ -85,6 +85,22 @@ class AlbumDAO:
         self.db.refresh(album)
         return album
 
+    def update(self, album_id: int, *, update_data: Dict[str, Any]) -> Optional[Album]:
+        """
+        Actualiza un álbum con un diccionario de datos.
+        Este método es genérico y solo actualiza los campos proporcionados.
+        """
+        album = self.get(album_id)
+        if not album:
+            return None
+        
+        for field, value in update_data.items():
+            if hasattr(album, field):
+                setattr(album, field, value)
+        
+        self.db.commit()
+        self.db.refresh(album)
+        return album
 
     def delete(self, album_id: int) -> bool:
         album = self.get(album_id)

@@ -19,7 +19,10 @@ from app import config
 
 from app.models.genre import Genre
 
-router = APIRouter(tags=["albumes"])
+router = APIRouter(
+    prefix="/albumes",
+    tags=["albumes"]
+)
 
 
 def _validate_upload(
@@ -75,7 +78,7 @@ async def _save_maybe_async(func, *args, **kwargs) -> str:
 
 
 @router.post(
-    "/albumes/upload",
+    "/upload",
     response_model=AlbumOut,
     status_code=status.HTTP_201_CREATED,
     summary="Subida de álbum ",
