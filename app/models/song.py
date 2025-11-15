@@ -7,6 +7,8 @@ from .artist_links import CancionArtistaLink
 from sqlalchemy.orm import relationship
 
 
+from typing import List
+
 
 class Cancion(Base):
     __tablename__ = "cancion"
@@ -36,6 +38,14 @@ class Cancion(Base):
     )
     album = relationship("Album", back_populates="canciones")   # playlists = relationship("Playlist", secondary=playlist_cancion, back_populates="canciones")
 
+
+    purchases = relationship(
+        "CompraCancion",
+        back_populates="song",
+        cascade="all, delete-orphan",
+    )
+
+
     @property
     def generos(self) -> list[str]:
         # nombres desde la relación N–N
@@ -45,6 +55,7 @@ class Cancion(Base):
     @property
     def artistas_emails(self) -> list[str]:
         return [r.artista_email for r in self.artistas_refs]
+
 
     def set_artistas_emails(self, emails: list[str]):
         self.artistas_refs = [CancionArtistaLink(artista_email=e) for e in emails]
