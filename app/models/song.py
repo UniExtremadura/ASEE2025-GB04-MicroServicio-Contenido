@@ -2,8 +2,10 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Integer, String, Float, Date, ForeignKey
 from app.db import Base
-from .associations import playlist_cancion, cancion_genero
+from .associations import cancion_genero
 from .artist_links import CancionArtistaLink
+from sqlalchemy.orm import relationship
+
 
 from typing import List
 
@@ -34,8 +36,7 @@ class Cancion(Base):
         back_populates="song",
         cascade="all, delete-orphan",
     )
-    album = relationship("Album", back_populates="canciones")
-    playlists = relationship("Playlist", secondary=playlist_cancion, back_populates="canciones")
+    album = relationship("Album", back_populates="canciones")   # playlists = relationship("Playlist", secondary=playlist_cancion, back_populates="canciones")
 
 
     purchases = relationship(
