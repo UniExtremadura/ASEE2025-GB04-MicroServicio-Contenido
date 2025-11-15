@@ -3,15 +3,20 @@ from __future__ import annotations
 
 from datetime import date as Date
 from typing import Optional, List
-from pydantic import BaseModel, ConfigDict, field_serializer
+from pydantic import BaseModel, ConfigDict, field_serializer, Field
 
 class CancionOut(BaseModel):
     id: int
     nomCancion: str
     archivoMp3: str
     imgPortada: Optional[str] = None
-    genre: Optional[str] = None
-    generos: List[str] = []
+    # en JSON se devuelve como "genres".
+    generos: list[str] = Field(default_factory=list, serialization_alias="genres")
+
+    artistas_emails: List[str] = Field(default_factory=list)
+
+
+
     date: Optional[Date] = None   # ← fecha o None
     precio: float
     numVisualizaciones: int

@@ -109,3 +109,22 @@ class AlbumDAO:
         self.db.delete(album)
         self.db.commit()
         return True
+    
+
+    def get_by_artist(self, email_artista: str) -> List[Album]:
+        """
+        Obtiene todos los álbumes asociados a un email de artista.
+        """
+        # Hacemos un JOIN con la tabla intermedia AlbumArtistaLink
+        # y filtramos por el email del artista.
+        # También cargamos las canciones y géneros para que 
+        # la respuesta JSON sea completa.
+        q = self.db.query(Album)\
+            .options(
+                joinedload(Album.genres),
+                joinedload(Album.canciones)
+            )\
+            .join(AlbumArtistaLink, Album.id == AlbumArtistaLink.album_id)\
+            .filter(AlbumArtistaLink.artista_email == email_artista)
+        
+        return q.all()
