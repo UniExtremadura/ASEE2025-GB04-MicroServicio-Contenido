@@ -65,6 +65,17 @@ def listar_ids_comprados(
 ):
     return purchase_dao.list_user_song_ids(user_ref=user_ref)
 
+@router.get(
+    "/compras/albumes",
+    response_model=List[int],
+    summary="IDs de álbumes comprados por un usuario",
+)
+def listar_albumes_comprados(
+    user_ref: str = Query(..., description="Identificador externo del usuario (email o user_id)"),
+    album_purchase_dao: AlbumPurchaseDAO = Depends(get_album_purchase_dao),
+):
+    return album_purchase_dao.list_user_album_ids(user_ref=user_ref)
+
 
 @router.get("/compras/check", response_model=CompraCheckOut)
 def comprobar_compra(

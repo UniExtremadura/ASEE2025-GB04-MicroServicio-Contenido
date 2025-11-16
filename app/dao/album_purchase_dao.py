@@ -1,5 +1,5 @@
 # app/dao/album_purchase_dao.py
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy.orm import Session
 from app.models.purchase import CompraAlbum
 from app.models.album import Album
@@ -47,4 +47,13 @@ class AlbumPurchaseDAO:
         self.db.flush()
         self.db.refresh(compra)
         return compra
+
+    # Identifica los IDs de los álbumes comprados por un usuario
+    def list_user_album_ids(self, *, user_ref: str) -> List[int]:
+        rows = (
+            self.db.query(CompraAlbum.album_id)
+            .filter(CompraAlbum.user_ref == user_ref)
+            .all()
+        )
+        return [album_id for (album_id,) in rows]
 

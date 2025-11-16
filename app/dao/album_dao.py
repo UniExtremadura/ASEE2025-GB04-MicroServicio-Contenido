@@ -13,6 +13,22 @@ class AlbumDAO:
     def __init__(self, db: Session):
         self.db = db
 
+    # Normaliza la ruta de la imagen para almacenarla en la base de datos (que no se ponga el prefijo /files)
+    def _normalize_img_path(self, path: str | None) -> str | None:
+        if not path:
+            return None
+        path = path.strip()
+        # La url externa no se toca
+        if path.startswith("http://") or path.startswith("https://"):
+            return path
+        # Si viene con http://.../files/..., se queda con lo que va detras
+        marker = "/files/"
+        if marker in path:
+            path = path.split(marker, 1)[1]
+        # Se quitan las / iniciales si hay
+        return path.lstrip("/")
+
+
     def list_albums(self, *, titulo: Optional[str] = None):
         # Cargar las relaciones de géneros y canciones
         q = self.db.query(Album).options(
@@ -100,6 +116,11 @@ class AlbumDAO:
         if not album:
             return None
 
+        # normalizar imgPortada si viene del frontend con /files/...
+        if "imgPortada" in update_data and update_data["imgPortada"]:
+            update_data["imgPortada"] = self._normalize_img_path(update_data["imgPortada"])
+
+
         for field, value in update_data.items():
             if hasattr(album, field):
                 setattr(album, field, value)
@@ -107,6 +128,7 @@ class AlbumDAO:
         self.db.commit()
         self.db.refresh(album)
         return album
+
 
     def delete(self, album_id: int) -> bool:
         album = self.get(album_id)
