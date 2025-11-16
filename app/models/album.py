@@ -30,6 +30,12 @@ class Album(Base):
         cascade="all, delete-orphan",
     )
 
+    album_purchases = relationship(
+        "CompraAlbum",
+        back_populates="album",
+        cascade="all, delete-orphan",
+    )
+
     @property
     def generos(self) -> list[str]:
         # nombres desde la relación N–N
