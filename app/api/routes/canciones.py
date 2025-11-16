@@ -49,3 +49,18 @@ def listar_albumes_por_artista(
 ):
     """Lista los álbumes de un artista dado su email."""
     return album_dao.get_by_artist(email_artista)
+
+# incrementa numVisualizaciones de una canción
+@router.post("/canciones/{song_id}/play", response_model=CancionOut)
+def registrar_reproduccion(
+    song_id: int,
+    song_dao: SongDAO = Depends(get_song_dao),
+):
+    song = song_dao.increment_views(song_id)
+    if song is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Canción no encontrada",
+        )
+    return song
+
