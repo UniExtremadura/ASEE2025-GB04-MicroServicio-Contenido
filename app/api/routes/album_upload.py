@@ -46,6 +46,8 @@ async def upload_album(
     date: Optional[Date] = Form(None, description="Fecha del álbum (YYYY-MM-DD)"),
     canciones_ids: Optional[List[str]] = Form(None, description="IDs de canciones (repetidos o CSV)"),
     portada: Optional[UploadFile] = File(None, description="Imagen de portada"),
+    genres: Optional[List[str]] = Form(None),  # 👈 géneros del formulario
+
     # auth (tu proxy es ASYNC y devuelve {user_type, user_data:{email}})
     identity: dict = Depends(auth.get_current_identity),
     # daos
@@ -86,7 +88,7 @@ async def upload_album(
     # 4) Guardar portada (si viene)
     portada_path: Optional[str] = None
     if portada:
-        portada_path = save_upload("img", portada)  # devuelve "uploads/img/xxx.jpg"
+        portada_path = save_upload(portada,"img")  # devuelve "uploads/img/xxx.jpg"
 
     # 5) Crear álbum (tu DAO espera 'titulo' y 'artista_emails')
     album = album_dao.create(
@@ -96,6 +98,7 @@ async def upload_album(
         date=date,
         canciones_ids=ids,
         artista_emails=[artist_email],  # <- solo el del token
+        genre_names=genres,
     )
     return album
 

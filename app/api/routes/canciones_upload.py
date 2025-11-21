@@ -88,7 +88,6 @@ async def _save_maybe_async(func, *args, **kwargs) -> str:
 async def upload_cancion(
     nomCancion: str = Form(...),
     precio: float = Form(...),
-    genre: Optional[str] = Form(None),
     genres: Optional[List[str]] = Form(None),      # Varios
     date: Optional[Date] = Form(None),
     idAlbum: Optional[int] = Form(None),
@@ -120,8 +119,6 @@ async def upload_cancion(
     genre_names = []
     if genres:
         genre_names.extend(genres)
-    if genre:                                     # compat: si vino uno solo, también vale
-        genre_names.append(genre)
 
     # elimina duplicados, normaliza
     genre_names = [g.strip() for g in genre_names if g and g.strip()]
@@ -173,27 +170,72 @@ async def upload_cancion(
     return song
 
 
+from typing import Any, Optional, List
+from fastapi import Form, File, UploadFile
+
+# ...
+
 @router.put(
     "/canciones/{song_id}",
     response_model=CancionOut,
-    summary="Actualizar una canción por ID",
+    summary="Actualizar una canción por ID (datos + portada opcional)",
 )
 async def update_cancion(
     song_id: int,
-    cancion_update: CancionUpdate,
+    nomCancion: Optional[str] = Form(None),
+    generos: Optional[List[str]] = Form(None),
+    date: Optional[Date] = Form(None),
+    precio: Optional[float] = Form(None),
+    idAlbum: Optional[int] = Form(None),
+    artistas_emails: Optional[List[str]] = Form(None),
+
+    # nueva portada opcional
+    portada: UploadFile | None = File(None),
+
     db: Session = Depends(get_db),
 ):
-    """
-    Actualiza los campos de una canción.
-    Los campos no proporcionados no se modificarán.
-    """
     song_service = SongService(db)
-    update_data = cancion_update.model_dump(exclude_unset=True)
+    update_data: dict[str, Any] = {}
+
+    if nomCancion is not None:
+        update_data["nomCancion"] = nomCancion
+    if precio is not None:
+        update_data["precio"] = precio
+    if date is not None:
+        update_data["date"] = date
+    if idAlbum is not None:
+        update_data["idAlbum"] = idAlbum
+    if artistas_emails is not None:
+        update_data["artistas_emails"] = artistas_emails
+    if generos is not None:
+        update_data["generos"] = generos
+
+    # Si viene una nueva portada, la guardamos y actualizamos imgPortada
+    if portada is not None and portada.filename:
+        _validate_upload(
+            portada,
+            config.ALLOWED_IMAGE_EXTS,
+            config.MAX_IMAGE_MB,
+            "portada",
+            "image/",
+        )
+        portada_path = await _save_maybe_async(
+            storage.save_upload, portada, subdir="img"
+        )
+        update_data["imgPortada"] = portada_path
+
+    if not update_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se proporcionó ningún campo a actualizar",
+        )
+
     updated_song = song_service.update_song(song_id, update_data=update_data)
-
     if updated_song is None:
-        raise HTTPException(status_code=404, detail=f"Canción con id={song_id} no encontrada")
-
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Canción con id={song_id} no encontrada",
+        )
     return updated_song
 
 

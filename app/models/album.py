@@ -21,11 +21,21 @@ class Album(Base):
     genres = relationship("Genre", secondary=album_genero, back_populates="albums")
 
     # relaciones con canciones
-    canciones = relationship("Cancion", back_populates="album", cascade="all, delete-orphan")
+    canciones = relationship(
+        "Cancion",
+        back_populates="album",
+        cascade="all",  # al quitarla del álbum NO se borra
+    )
 
     # relación N–N con artistas usando tabla intermedia
     artistas_refs = relationship(
         "AlbumArtistaLink",
+        back_populates="album",
+        cascade="all, delete-orphan",
+    )
+
+    album_purchases = relationship(
+        "CompraAlbum",
         back_populates="album",
         cascade="all, delete-orphan",
     )

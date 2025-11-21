@@ -13,6 +13,22 @@ class AlbumDAO:
     def __init__(self, db: Session):
         self.db = db
 
+    # Normaliza la ruta de la imagen para almacenarla en la base de datos (que no se ponga el prefijo /files)
+    def _normalize_img_path(self, path: str | None) -> str | None:
+        if not path:
+            return None
+        path = path.strip()
+        # La url externa no se toca
+        if path.startswith("http://") or path.startswith("https://"):
+            return path
+        # Si viene con http://.../files/..., se queda con lo que va detras
+        marker = "/files/"
+        if marker in path:
+            path = path.split(marker, 1)[1]
+        # Se quitan las / iniciales si hay
+        return path.lstrip("/")
+
+
     def list_albums(self, *, titulo: Optional[str] = None):
         # Cargar las relaciones de géneros y canciones
         q = self.db.query(Album).options(
@@ -56,30 +72,36 @@ class AlbumDAO:
             album.canciones = canciones
 
 
-        if genre_names:  # lista validada desde el endpoint
+        if genre_names:
             norm = [g.strip().lower() for g in genre_names if g.strip()]
+
             if norm:
-             found = (
-                self.db.query(Genre)
-                .filter(func.lower(Genre.name).in_(norm))
-                .all()
-             )
-            if len(found) != len(norm):
-             missing = set(norm) - {g.name.lower() for g in found}
-             raise HTTPException(status_code=400, detail=f"Géneros no válidos: {sorted(missing)}")
-        album.genres = found
+                genres = (
+                    self.db.query(Genre)
+                    .filter(func.lower(Genre.name).in_(norm))
+                    .all()
+                )
+
+                if len(genres) != len(norm):
+                    missing = set(norm) - {g.name.lower() for g in genres}
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Géneros no válidos: {sorted(missing)}",
+                    )
+                # solo si todo ha ido bien, asignamos
+                album.genres = genres
 
 
             # # si no pasa 'genre' simple, usa el primero como principal
-              # if not genre and found:
+            # if not genre and found:
             #     song.genre = found[0].name
         # relaciones: artistas (usando el helper)
         if artista_emails:
             # método helper en el modelo Cancion
             album.set_artistas_emails(artista_emails)
-       
-       
-       
+
+
+
         self.db.add(album)
         self.db.commit()
         self.db.refresh(album)
@@ -93,14 +115,20 @@ class AlbumDAO:
         album = self.get(album_id)
         if not album:
             return None
-        
+
+        # normalizar imgPortada si viene del frontend con /files/...
+        if "imgPortada" in update_data and update_data["imgPortada"]:
+            update_data["imgPortada"] = self._normalize_img_path(update_data["imgPortada"])
+
+
         for field, value in update_data.items():
             if hasattr(album, field):
                 setattr(album, field, value)
-        
+
         self.db.commit()
         self.db.refresh(album)
         return album
+
 
     def delete(self, album_id: int) -> bool:
         album = self.get(album_id)
@@ -109,7 +137,7 @@ class AlbumDAO:
         self.db.delete(album)
         self.db.commit()
         return True
-    
+
 
     def get_by_artist(self, email_artista: str) -> List[Album]:
         """
@@ -120,11 +148,11 @@ class AlbumDAO:
         # También cargamos las canciones y géneros para que 
         # la respuesta JSON sea completa.
         q = self.db.query(Album)\
-            .options(
-                joinedload(Album.genres),
-                joinedload(Album.canciones)
-            )\
-            .join(AlbumArtistaLink, Album.id == AlbumArtistaLink.album_id)\
-            .filter(AlbumArtistaLink.artista_email == email_artista)
-        
+        .options(
+            joinedload(Album.genres),
+            joinedload(Album.canciones)
+        )\
+        .join(AlbumArtistaLink, Album.id == AlbumArtistaLink.album_id)\
+        .filter(AlbumArtistaLink.artista_email == email_artista)
+
         return q.all()
