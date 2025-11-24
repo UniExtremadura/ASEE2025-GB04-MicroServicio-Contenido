@@ -28,6 +28,9 @@ class Cancion(Base):
 
     genres = relationship("Genre", secondary=cancion_genero, back_populates="songs")
 
+    comments = relationship( "Comment", back_populates="song", cascade="all, delete-orphan", order_by="desc(Comment.created_at)" 
+                            )
+
 
     # 🔧 relaciones coherentes
     artistas_refs = relationship(
