@@ -24,7 +24,6 @@ class SongDAO:
         # Se quitan las / iniciales si hay
         return path.lstrip("/")
 
-    # Antes 'list' -> ahora 'list_songs'
     def list_songs(self, *, genero: Optional[str] = None, popularidad: Optional[str] = None):
         q = self.db.query(Song).options(joinedload(Song.genres))
         if genero:

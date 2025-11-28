@@ -40,6 +40,13 @@ class Album(Base):
         cascade="all, delete-orphan",
     )
 
+    comments = relationship(
+        "Comment",
+        back_populates="album",
+        cascade="all, delete-orphan",
+        order_by="desc(Comment.created_at)"
+    )
+
     @property
     def generos(self) -> list[str]:
         # nombres desde la relación N–N
