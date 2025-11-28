@@ -75,7 +75,6 @@ async def upload_album(
     # 3) Validar PROPIEDAD: todas las canciones deben pertenecer al artista del token
     no_propias = []
     for s in songs:
-        # tu relación real es 'artistas_refs' con campo 'artista_email'
         owner_emails = {ref.artista_email for ref in (s.artistas_refs or [])}
         if artist_email not in owner_emails:
             no_propias.append(s.id)
@@ -88,7 +87,7 @@ async def upload_album(
     # 4) Guardar portada (si viene)
     portada_path: Optional[str] = None
     if portada:
-        portada_path = save_upload(portada,"img")  # devuelve "uploads/img/xxx.jpg"
+        portada_path = save_upload(portada,"img")  
 
     # 5) Crear álbum (tu DAO espera 'titulo' y 'artista_emails')
     album = album_dao.create(
@@ -97,7 +96,7 @@ async def upload_album(
         precio=precio,
         date=date,
         canciones_ids=ids,
-        artista_emails=[artist_email],  # <- solo el del token
+        artista_emails=[artist_email],  
         genre_names=genres,
     )
     return album

@@ -7,7 +7,7 @@ from sqlalchemy import func
 import inspect
 from datetime import date as Date
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
@@ -92,7 +92,6 @@ async def upload_cancion(
     date: Optional[Date] = Form(None),
     idAlbum: Optional[int] = Form(None),
 
-    # Puedes enviar varios: artistas_emails=ana@...&artistas_emails=pedro@...
     artistas_emails: Optional[List[str]] = Form(None),
 
     audio: UploadFile = File(...),
@@ -163,17 +162,14 @@ async def upload_cancion(
         date=date,
         artistas_emails=artistas_emails or [],
         idAlbum=idAlbum,
-        genre_names=genre_names,            # ← aquí pasan varios
+        genre_names=genre_names,            
 
     )
 
     return song
 
 
-from typing import Any, Optional, List
-from fastapi import Form, File, UploadFile
 
-# ...
 
 @router.put(
     "/canciones/{song_id}",

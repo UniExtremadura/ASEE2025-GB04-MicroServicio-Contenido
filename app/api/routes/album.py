@@ -79,7 +79,6 @@ async def update_album(
     genre: Optional[List[str]] = Form(None),
     # ids de canciones del álbum
     canciones_ids: Optional[List[int]] = Form(None),
-    # ojo con el nombre: en el schema es 'artista_emails'
     artista_emails: Optional[List[str]] = Form(None),
 
     portada: UploadFile | None = File(None),
@@ -97,7 +96,6 @@ async def update_album(
     if date is not None:
         update_data["date"] = date
 
-    # Igual que antes: el service/DAO esperan 'genre_names'
     if genre is not None:
         update_data["genre_names"] = genre
 
